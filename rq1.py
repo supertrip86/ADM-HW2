@@ -30,10 +30,5 @@ for i in d:
 
 print(complete) # answer 1: 29 is the number of the complete funnels among all user_sessions (in a limited subset of n=10000)
 
-view = len(dataset[dataset.event_type=="view"]) / len(dataset)
-purchase = len(dataset[dataset.event_type=="purchase"]) / len(dataset)
-cart = len(dataset[dataset.event_type=="cart"]) / len(dataset)
-
-data = [view, cart, purchase]
-
-print(data) # answer 2: the number of times (in percentage) each user performs one of the indicated operations (view, remove from cart, purchase) during a session
+fig, ax = plt.subplots()
+dataset.event_type.value_counts(normalize=True).plot(ax=ax, kind='bar') # answer 2: the number of times (in percentage) each user performs one of the indicated operations (view, remove from cart, purchase) during a session
