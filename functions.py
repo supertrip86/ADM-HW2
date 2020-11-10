@@ -13,19 +13,36 @@ def ops_per_session(dataset):
                     d[session][event] += 1
                 else:
                     d[session][event] = 1
-                d[session]['seq'].append(event)
+                if (event == 'view') and ('cart' not in d[session]) and ('purchase' not in d[session]):
+                    d[session]['views_before_cart'] += 1
+                
             else:
                 d[session] = {}
                 d[session][event] = 1
-                d[session]['seq'] = [event]
+                d[session]['views_before_cart'] = 1
             
     return d
 
-def complete_funnels(d):
-    complete = 0
+def getData(dataset):
+    d = ops_per_session(dataset)
+
+    data = {'funnels': 0, 'n_views': 0, 'n_purchase': 0, 'n_sessions': len(d), 'n_cart': 0}
     
     for i in d:
-        if len(d[i]) == 3:
-            complete += 1
+        if 'cart' in d[i] and 'purchase' in d[i]:
+            data['funnels'] += 1
+        if 'cart' in d[i]:
+            data['n_cart'] += 1
+            data['n_views'] += d[i]['view']
+        if 'purchase' in d[i]:
+            data['n_purchase'] += 1
 
-    return complete
+    return data
+
+def getSubcategory(category):
+    allsubcategories = category.split('.')
+
+    if len(allsubcategories) > 1:
+        return allsubcategories[1]
+
+    return allsubcategories[0]
