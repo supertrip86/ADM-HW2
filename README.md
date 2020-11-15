@@ -11,4 +11,4 @@ The notebook has been processed entirely by a local machine with the following s
 
 The total processing time for the whole notebook, with the machine indicated, is of 35 minutes. Most of such time comes from RQ1 - 5 and RQ1 - 6 (around 10 minutes each).
 
-The analysis has been made by using the October 2019 and November 2019 datasets.
+The analysis has been made with the October 2019 and November 2019 datasets.
