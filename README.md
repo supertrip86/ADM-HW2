@@ -9,6 +9,6 @@ The notebook has been processed entirely by a local machine with the following s
 - RAM: 2x16 GB DDR4 4200 Mhz
 - **NO** dedicated GPU
 
-The total processing time for the whole notebook, with the machine indicated, is of 35 minutes. Most of such time comes from RQ1 - 5 and RQ1 - 6 (around 10 minutes each).
+The total processing time for the whole notebook, with the machine indicated, is of 30 minutes. Most of such time comes from RQ1 - 5 and RQ1 - 6 (around 10 minutes each).
 
 The analysis has been made with the October 2019 and November 2019 datasets.
