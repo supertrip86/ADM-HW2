@@ -101,18 +101,21 @@ def averageTimeInCartBeforePurchase(df):
     in a dictionary, for every user session, a list containing all the events (in this case, only "cart" and "purchase"), 
     along with the time they occurred. The following three steps are:
 
-    1-  Filter out all the non necessary user sessions, that are all the sessions that doesn't have both "cart" AND 
+    a-  Filter out all the non necessary user sessions, that are all the sessions that doesn't have both "cart" AND 
         "purchase" events.
-    2-  Extract from each session a sublist of events, that goes from "cart" to "purchase". This is necessary because 
+    b-  Extract from each session a sublist of events, that goes from "cart" to "purchase". This is necessary because 
         sometimes items are purchased before being viewed, or inserted in the cart. As seen at this link 
         https://www.kaggle.com/mkechinov/ecommerce-behavior-data-from-multi-category-store/discussion/132470, given that 
         the event "remove from cart" is not available, we can consider the time passed from the event "cart" to the event 
         "purchase", hence we only save the first event (cart) and the last event (purchase) of the sublist.
-    3-  At this point, we simply have to calculate the difference between the date of purchase and the date the product 
+    c-  At this point, we simply have to calculate the difference between the date of purchase and the date the product 
         was added to the cart, for each user session.
 
     As a last step, we take all the time differences, that are in seconds, we calculate the average, and we return the 
     result in minutes (the result is rounded without decimals).
+
+    IMPORTANT: each time we perform a check in the dictionary, the additional step of splitting the event list values is
+    taken, as we have to separate the "event" part of the string from the "date" part of the string.
     '''
 
     all_items = df[df.event_type!="view"].groupby(['user_session']).apply(lambda x: list(x['event_type'] + ';' + x['event_time'])).to_dict()
@@ -126,6 +129,32 @@ def averageTimeInCartBeforePurchase(df):
     result = round((sum(time_in_seconds) / len(time_in_seconds)) / 60)
 
     return result
+
+
+
+def averageTimeBeforeCartOrPurchase(df):
+    '''
+    We create two subsets, one containing all the "view" events, and the other containing the "cart" and the 
+    "purchase" events. Both are grouped by user session. In both subsets, for each user session, we only extract 
+    the first event, which is the first in time.
+    The very reasonable assumption we make, is that the "view" event should always happen before "cart" or "purchase".
+    Given such assumption, we merge the two subsets into one. This new dataset has, for each row, the first "cart" or 
+    "purchase" event as element of the column "event_type_y", and the first "view" event as element of the column 
+    "event_type_x", with their corresponding event times "event_time_x" and "event_time_y".
+
+    We extract only the "event_time_x" and "event_time_y" columns, and calculate the difference between them (as 
+    per our assumption, the dates in "event_time_y" are bigger then the dates in "event_time_x", hence the result 
+    is positive. The difference is returned in minutes, and rounded without decimals.
+    '''
+
+    first_view_event = df[df.event_type=="view"].groupby('user_session').first()
+    first_non_view_event = df[df.event_type!="view"].groupby('user_session').first()
+
+    mergedf = pd.merge(first_view_event, first_non_view_event, on='user_session').reset_index()
+    resultdf = pd.DataFrame(mergedf[['event_time_y','event_time_x']])
+    result = resultdf.apply(lambda x: (pd.to_datetime(x['event_time_y']) - pd.to_datetime(x['event_time_x'])).total_seconds(),axis=1)
+
+    return round((result.mean()) / 60)
 
 
 
@@ -193,6 +222,44 @@ def mostSoldProductsPerCategory(df):
     result = groups[['event_type']].count().sort_values(by=['event_type'],ascending=False).head(10)
 
     return result
+
+
+def averagePriceOfProductsByBrand(df):
+    '''
+    We extract from the dataset all the rows belonging to the category of interest (the one inserted by 
+    the user). Since we want to figure out the number of sales, we only keep the events that are labelled 
+    as "purchase". At this point, we create a group for each "brand" in the dataset, and calculate the mean 
+    of the price of all the sales for each brand. Eventually, by means of the plot method, we plot the result.
+    '''
+
+    x = input('Please, insert a category: ')
+
+    categorised = df[df.category_code == x ]
+
+    result = categorised[categorised.event_type=='purchase']
+
+    result.groupby('brand').price.mean().plot(kind="bar",figsize=(16,6))
+    plt.title('Average price of products for each Brand', fontsize=15)
+    plt.xlabel('Brand Names')
+    plt.ylabel('Average prices')
+    
+    return plt.show()
+
+
+def highestAveragePrices(df):
+    '''
+    After grouping the dataset by category and brand, we calculate the mean for the price of each brand in each category.
+    We then group again all the categories and sort every group by its price value in descending order.
+    The column names at this point are changed to avoid the overlapping of column names with index names.
+    Eventually, the highest average prices are calculated by means of the max function over every grouped category.
+    '''
+
+    groups = df.groupby(['category_code','brand'], as_index = False).price.mean()
+    sortedGroups = groups.groupby('category_code').apply(pd.DataFrame.sort_values,'price',ascending = False)
+    sortedGroups.columns=['CategoryCode','brand','price']
+    highestAveragePrice = sortedGroups.groupby('CategoryCode').max()
+    
+    return highestAveragePrice.sort_values('price')
 
 
 def findOverallConversionRate(df):
