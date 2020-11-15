@@ -95,6 +95,40 @@ def purchaseProbabilityAfterCart(df, events_per_user):
     return ratio
 
 
+def averageTimeInCartBeforePurchase(df):
+    '''
+    The approach is to first filter out from the dataset all the "view" events, which are not useful, then save 
+    in a dictionary, for every user session, a list containing all the events (in this case, only "cart" and "purchase"), 
+    along with the time they occurred. The following three steps are:
+
+    1-  Filter out all the non necessary user sessions, that are all the sessions that doesn't have both "cart" AND 
+        "purchase" events.
+    2-  Extract from each session a sublist of events, that goes from "cart" to "purchase". This is necessary because 
+        sometimes items are purchased before being viewed, or inserted in the cart. As seen at this link 
+        https://www.kaggle.com/mkechinov/ecommerce-behavior-data-from-multi-category-store/discussion/132470, given that 
+        the event "remove from cart" is not available, we can consider the time passed from the event "cart" to the event 
+        "purchase", hence we only save the first event (cart) and the last event (purchase) of the sublist.
+    3-  At this point, we simply have to calculate the difference between the date of purchase and the date the product 
+        was added to the cart, for each user session.
+
+    As a last step, we take all the time differences, that are in seconds, we calculate the average, and we return the 
+    result in minutes (the result is rounded without decimals).
+    '''
+
+    all_items = df[df.event_type!="view"].groupby(['user_session']).apply(lambda x: list(x['event_type'] + ';' + x['event_time'])).to_dict()
+    
+    a = {key: all_items[key] for key in all_items if all( z in [x.split(';')[0] for x in all_items[key]] for z in ['cart', 'purchase'] )}
+    b = {key: a[key][[x.split(';')[0] for x in a[key]].index('cart'):[x.split(';')[0] for x in a[key]].index('purchase')+1] for key in a}
+    c = {key: ( pd.to_datetime(b[key][-1].split(';')[1]) - pd.to_datetime(b[key][0].split(';')[1]) ).total_seconds() for key in b if len(b[key])}
+
+    time_in_seconds = list(dict.values(c))
+
+    result = round((sum(time_in_seconds) / len(time_in_seconds)) / 60)
+
+    return result
+
+
+
 def getSoldProductsByCategoryPerMonth(df_list):
     '''
     We iterate over all the datasets contained in df_list. Each element corresponds to a given month. 
