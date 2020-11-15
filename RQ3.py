@@ -23,4 +23,4 @@ plot_RQ3()
 filter1=dataset[dataset.brand.notnull()]
 filter2=filter1[filter1.category_code.notnull()]
 filter3=filter2.filter(['category_code','brand','price'])
-filter3.groupby(['category_code','brand']).price.mean().sort_values(ascending=False)
+filter3.groupby(['category_code','brand']).price.mean().sort_values()
