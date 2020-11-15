@@ -20,7 +20,10 @@ def plot_RQ3():
 plot_RQ3()
 
 #------------RQ3_2--------------------
-filter1=dataset[dataset.brand.notnull()]
-filter2=filter1[filter1.category_code.notnull()]
-filter3=filter2.filter(['category_code','brand','price'])
-filter3.groupby(['category_code','brand']).price.mean().sort_values()
+
+filter1=dataset.groupby(['category_code','brand'], as_index = False).price.mean()
+filter2=filter1.groupby('category_code').apply(pd.DataFrame.sort_values,'price',ascending = False)
+filter2.columns=['CategoryCode','brand','price'] #colnames have been changed to avoid confusion with inedx name / col name ambiguous
+HighestAvgPrc= filter2.groupby('CategoryCode').max()
+HighestAvgPrc.sort_values('price')
+
