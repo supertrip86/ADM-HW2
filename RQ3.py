@@ -21,6 +21,14 @@ plot_RQ3()
 
 #------------RQ3_2--------------------
 
+#Here we have applied groupby functions for more than one filed, 'catagory_code & 'brand' on our dataset {filter1}, as the task was to find out 
+#the bran with the highest average price for each catagories.
+#Then we have applied mean() function for the price of the products to calculate the average price of product for each brand on each catagory grouped.
+#On filter2 we have again used groupby by 'catagory_code' and we sorted the price on ascending order using apply() function.
+#We had to change the column name as it was overlapping with the index name and creating ambiguity. 
+#Then on 'HighestAvgPrc' we have used groupby for the last time by 'CategoryCode' and tried out to find out the highest average price for each catagory.
+#In the end we sorted the average price on ascending orders using sort_values() function.
+
 filter1=dataset.groupby(['category_code','brand'], as_index = False).price.mean()
 filter2=filter1.groupby('category_code').apply(pd.DataFrame.sort_values,'price',ascending = False)
 filter2.columns=['CategoryCode','brand','price'] #colnames have been changed to avoid confusion with inedx name / col name ambiguous
